@@ -8,7 +8,7 @@ use crate::{misc, deserializer::{JsonStore, deserialize_json, payload_to_string}
 #[derive(Clone)]
 pub struct WindowStore { // Per window data
     window_id: String,
-    file_path: String,
+    save_folder_path: String,
     is_window_open: bool,
     deseralized_jsons: Option<Vec<JsonStore>>
 }
@@ -46,7 +46,7 @@ impl SotfSaveAnalyserApp {
 
         let store = WindowStore {
             window_id: window_id.clone(),
-            file_path: path,
+            save_folder_path: path,
             is_window_open: true,
             deseralized_jsons: Option::None,
         };
@@ -82,7 +82,7 @@ impl SotfSaveAnalyserApp {
 
             }
 
-            if j.children.is_some() {
+            if j.children.is_some() && j.field != "VailWorldSim" {
                 let mut child_preamble = String::from("");
                 child_preamble.push_str(&indent_string);
                 child_preamble.push_str(&j.field);
@@ -117,8 +117,8 @@ impl SotfSaveAnalyserApp {
             }
 
             // Check if deserialization is complete
-            if window_contents.deseralized_jsons.is_none() && window_contents.file_path.len() > 0 { // Init deserialization
-                let all_json_data = deserialize_json(window_contents.file_path.clone());
+            if window_contents.deseralized_jsons.is_none() && window_contents.save_folder_path.len() > 0 { // Init deserialization
+                let all_json_data = deserialize_json(window_contents.save_folder_path.clone());
 
                 if all_json_data.is_empty() { // TODO: Corner case
                     continue;
@@ -223,7 +223,7 @@ impl App for SotfSaveAnalyserApp {
 
         egui::SidePanel::left("side_panel").show(ctx, |ui| {
 
-            if ui.button("Open file...").clicked() {
+            if ui.button("Open save folder…").clicked() {
                 self.is_open_file_clicked = !self.is_open_file_clicked;
             }
 
@@ -232,11 +232,8 @@ impl App for SotfSaveAnalyserApp {
             
                 let mut picked_path = Option::None;
 
-
-                if ui.button("Open file…").clicked() {
-                    if let Some(path) = rfd::FileDialog::new().pick_file() { // TODO: Pontentially make Async for wasm
-                        picked_path = Some(path.display().to_string());
-                    }
+                if let Some(path) = rfd::FileDialog::new().pick_folder() { // TODO: Pontentially make Async for wasm
+                    picked_path = Some(path.display().to_string());
                 }
 
 
@@ -255,6 +252,7 @@ impl App for SotfSaveAnalyserApp {
 
                 }
 
+                self.is_open_file_clicked = false;
             }
 
         });

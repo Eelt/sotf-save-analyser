@@ -15,7 +15,7 @@ fn main() {
         "Sons of the Forest Save Analyser",
         native_options,
         Box::new(|cc| Box::new(SotfSaveAnalyserApp::new(cc))),
-    )
+    );
 }
 
 // when compiling to web using trunk.
